@@ -1,0 +1,9 @@
+name: gelf
+version: 0.1.0
+
+authors:
+  - alex-lairan <alexandrelairan+github@gmail.com>
+
+crystal: 0.26.1
+
+license: MIT
