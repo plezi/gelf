@@ -51,30 +51,8 @@ module GELF
       serialized_data = serialize_message(populate_options(data, options))
 
       if serialized_data.size > chunk_size
-        msg_id = Random::Secure.hex(4)
-        num_slices = (serialized_data.size / chunk_size).ceil.to_i
-
-        num_slices.times do |index|
-          io = IO::Memory.new
-
-          # Magic bytes
-          io.write_byte(0x1e_u8)
-          io.write_byte(0x0F_u8)
-
-          # Message id
-          io.write(msg_id.to_slice)
-
-          # Chunk info
-          io.write_byte(index.to_u8)
-          io.write_byte(num_slices.to_u8)
-
-          # Bytes
-          bytes_to_send = [serialized_data.size, chunk_size].min
-          io.write(serialized_data[0, bytes_to_send])
-          serialized_data += bytes_to_send
-
-          @sender.write(io.to_slice)
-        end
+        slicer = Slicer.new(chunk_size)
+        slicer.call(serialized_data).each { |slice| @sender.write(slice) }
       else
         @sender.write(serialized_data)
       end
@@ -99,7 +77,6 @@ module GELF
       deflater.write(json.to_slice)
       deflater.close
       io.to_slice
-      json.to_slice
     end
   end
 end
