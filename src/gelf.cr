@@ -1,6 +1,6 @@
-# TODO: Write documentation for `Gelf`
-module Gelf
-  VERSION = "0.1.0"
+require "./gelf/severity"
+require "./gelf/**"
 
-  # TODO: Put your code here
+module GELF
+  VERSION = "0.1.0"
 end
