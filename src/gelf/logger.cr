@@ -12,7 +12,7 @@ module GELF
   # You can then give the `GELF::Logger` a level, and only messages at that level of higher will be printed.
   #
   # Messages will be sent with a sender (default: `GELF::SenderUDP`)
-  class Logger < ::Logger
+  class Logger
     Habitat.create do
       setting host : String
       setting port : Int32
@@ -23,7 +23,6 @@ module GELF
     end
 
     def initialize(@sender : Sender = SenderUDP.new(settings.host, settings.port))
-      super(STDOUT)
     end
 
     {% for name in ::Logger::Severity.constants %}
@@ -32,10 +31,14 @@ module GELF
       end
     {% end %}
 
-    def log(severity, message, progname = settings.progname, options = Hash(String, String).new)
+    def log(severity, message : String, progname : String = settings.progname, options = Hash(String, String).new)
       return if settings.severity_mapper[severity] > settings.severity_mapper[settings.base_severity]
+       write(severity, message, progname, options)
+    end
 
-      write(severity, message, progname, options)
+    private def write(severity, message, progname, options : Hash(String, T)) forall T
+      opts = options.each_with_object({} of String => String) { |(k, v), h| h[k] = v.to_s }
+      write(severity, message, progname, opts)
     end
 
     private def write(severity, message, progname, options : Hash(String, String) = Hash(String, String).new)
@@ -44,7 +47,6 @@ module GELF
         "version" => "1.1",
         "host" => settings.host,
         "level" => settings.severity_mapper[severity],
-        "_source" => "pepper_potts",
         "_facility" => progname
       }
 
@@ -62,7 +64,7 @@ module GELF
       settings.chunk_size
     end
 
-    private def populate_options(data, options)
+    private def populate_options(data, options : Hash(String, String))
       options.each do |k, v|
         data["_#{k}"] = v
       end
