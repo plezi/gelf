@@ -1,4 +1,5 @@
 # gelf
+This shard is under WORK IN PROGRESS. We hope to finish things to make it offical soon
 
 TODO: Write a description here
 
